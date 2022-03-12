@@ -1,0 +1,126 @@
+---
+title: "Analisis Estadistico TAE"
+author: "Andrés Camilo García Moreno"
+date: "11/03/2022"
+output: 
+  html_document: 
+    css: grafico.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r ignorar advertencias }
+options(warn=-1)
+```
+
+```{r Importacion de librerias  ,results='hide', message=FALSE, warning=FALSE}
+library(dplyr,warn.conflicts = FALSE)
+library(tidyr,warn.conflicts = FALSE)
+library(tidyverse,warn.conflicts = FALSE)
+library(lubridate,warn.conflicts = FALSE)
+library(writexl)
+library(readxl)
+options(dplyr.summarise.inform = FALSE)
+library(plotrix)
+```
+
+<titulo>Analisis descriptivo de estudiantes en el curso de Tecnicas de Aprendizaje Estadistico (TAE) 2022-1</titulo>
+
+
+
+```{r Lectura de la base de datos}
+Base_de_datos_sin_depurar <- read_excel("TAE2.xlsx")
+```
+
+
+```{r Filtro por carrera}
+Carrera_Analisis<-Base_de_datos_sin_depurar %>%
+  group_by(Programa_académico)%>%
+  summarise(`Numero de estudiantes` = n())
+
+```
+
+Primero analizaremos que programas academicos los estudiantes escogen más, como podemos ver en la grafica ,los estudiantes del programa academico de Ingenieria de Sistemas e Informática conforman mas del 50% de los estudiantes inscritos en el curso de TAE, seguido de Estadística que conforma poco mas del 20%, mientras que los estudiantes de Ingenieria Civil ,Ingeniería Biológica, Ingeniería Eléctrica,Mathematical Data Science e Ingeniería Industrial conforman el grupo mas pequeño con 1 estudiante por programa academico , sin embargo hay 2 estudiantes que no especifican a que programa académico pertenecen.
+
+```{r}
+Nombre_programa <- paste("# Estudiantes:",Carrera_Analisis$`Numero de estudiantes`, "|",round(Carrera_Analisis$`Numero de estudiantes`/sum(Carrera_Analisis$`Numero de estudiantes`)*100),"%")
+pie(Carrera_Analisis$`Numero de estudiantes`,labels=Nombre_programa,col = rainbow(length(Carrera_Analisis$Programa_académico)))
+
+
+```
+```{r}
+plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+legend("top", Carrera_Analisis$Programa_académico, cex = 0.8,
+       fill = rainbow(length(Carrera_Analisis$`Numero de estudiantes`)))
+```
+
+
+
+
+```{r}
+Hobby_Analisis<-Base_de_datos_sin_depurar %>%
+  group_by(`Tipo de Hobby`)%>%
+  summarise(`Numero de estudiantes` = n())
+  
+```
+
+
+
+
+En cuanto el tipo de hobby que prefieren los estudiantes , estos prefieren los videojuegos , seguido muy de cerca de deporte y/o actividades fisicas
+En cuanto al resto actividades relacionadas con la musica tiene una cantidad decente, mientras que el resto de pasatiempos solo cuentan con 1 o 2 estudiantes que los consideran como su preferido.
+
+
+
+
+```{r Hobby Grafico}
+ggplot(Hobby_Analisis, aes(x=`Tipo de Hobby`,y=`Numero de estudiantes`,fill = `Tipo de Hobby`)) +
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 0))+
+  scale_y_discrete(limits=0:20)+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+  
+```
+
+
+```{r}
+Analisis_Mercado<-Base_de_datos_sin_depurar %>%
+  group_by(Insercion_al_mercado_laboral,`Nivel de Avance`)%>%
+  summarise(`Numero de estudiantes` = n())
+  
+```
+Analizando el nivel de avance podemos notar que las personas en octavo y noveno semestre son las que mas se han inscrito al curso con 9 estudiantes o mas , mientras que personas de un avance en semestres de 5,6,12,13 son de un numero reducido, asi tambien se observa una tendencia de que la personas de semestres superiores tienden a trabajar , y ya estar en el ambito laboral ,especialmente desde el noveno semestre.
+
+
+
+```{r Trabajo Grafico}
+ggplot(Analisis_Mercado, aes(x=`Nivel de Avance`,y=`Numero de estudiantes`,fill=`Insercion_al_mercado_laboral`)) +
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 0))+
+  scale_x_discrete(limits=4:13)+
+  scale_y_discrete(limits=0:14)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 0))
+  
+```
+
+Analizando el genero de los estudiantes por carrera podemos ver que , hay una predominancia del genero masculino en casi todos los programas academicos con excepcion de Mathematical Data Science , el cual solo cuenta con un estudiante de genero femenino , Sin embargo bajo esa misma logica se rigen los programas academicos con un solo estudiantes asi que de ahi no se podria tomar como algo representativo en esas carreras , donde realmente se llama la atencion en es estadistica que los generos estan balanceados un poco , asi mismo en ingenieria de sistemas cuenta con una cantidad bastante elevada de estudiantes de genero masculino en comparacion al genero opuesto.
+
+```{r}
+Analisis_Genero<-Base_de_datos_sin_depurar %>%
+  group_by(Genero,Programa_académico)%>%
+  summarise(`Numero de estudiantes` = n())%>%
+  mutate(`Numero de estudiantes`=as.integer(`Numero de estudiantes`))
+```
+
+```{r Genero Grafico}
+ggplot(Analisis_Genero, aes(x=`Genero`,y=`Numero de estudiantes`,fill=`Genero`)) +
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 0))+
+  facet_wrap(~Programa_académico, scales = "free_y")
+  
+```
+
